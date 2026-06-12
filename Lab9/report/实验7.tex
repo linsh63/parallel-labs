@@ -1,0 +1,150 @@
+%!TeX program = xelatex
+\documentclass{SYSUReport}
+\usepackage{tabularx} % 在导言区添加此行
+\usepackage{float}
+% 根据个人情况修改
+\headl{}
+\headc{}
+\headr{并行程序设计与算法实验}
+\lessonTitle{并行程序设计与算法实验}
+\reportTitle{Lab7-MPI并行应用}
+\stuname{xxx}
+\stuid{xxx}
+\inst{计算机学院}
+\major{xxx}
+\date{2025年5月7日}
+
+\begin{document}
+
+% =============================================
+% Part 1: 封面
+% =============================================
+\cover
+\thispagestyle{empty} % 首页不显示页码
+\clearpage
+
+% % =============================================
+% % Part 4： 正文内容
+% % =============================================
+% % 重置页码，并使用阿拉伯数字
+% \pagenumbering{arabic}
+% \setcounter{page}{1}
+
+%%可选择这里也放一个标题
+%\begin{center}
+%    \title{ \Huge \textbf{{标题}}}
+%\end{center}
+
+\section{实验目的}
+\begin{itemize}
+   \item 验证并行FFT的加速效果与可扩展性
+    \item 评估数据打包对通信性能的优化作用
+    \item 分析并行规模对内存消耗的影响
+\end{itemize}
+
+\section{实验内容}
+\begin{itemize}
+    \item \textbf{串行FFT分析与并行化改造：}
+    \begin{itemize}
+        \item 阅读并理解提供的串行傅里叶变换代码 (fft\_serial.cpp)。
+        \item 使用MPI (Message Passing Interface) 对串行FFT代码进行并行化改造，可能需要对原有代码结构进行调整以适应并行计算模型。
+    \end{itemize}
+    \item \textbf{MPI数据通信优化：}
+    \begin{itemize}
+        \item 研究并应用MPI数据打包技术（例如使用 \texttt{MPI\_Pack}/\texttt{MPI\_Unpack} 或 \texttt{MPI\_Type\_create\_struct}）来对通信数据进行重组，以优化消息传递效率。
+    \end{itemize}
+    \item \textbf{程序性能与内存分析：}
+    \begin{itemize}
+        \item \textbf{性能分析：}
+        \begin{itemize}
+            \item 分析在不同并行规模（即不同的进程数量）以及不同问题规模（即输入数据N的大小）条件下，并行FFT程序的性能表现（例如，通过计算加速比和并行效率来衡量）。
+            \item 分析数据打包技术对于并行程序整体性能的具体影响。
+        \end{itemize}
+        \item \textbf{内存消耗分析：}
+        \begin{itemize}
+            \item 使用Valgrind工具集中的Massif工具来采集并分析并行程序在不同配置下的内存消耗情况。
+            \item 在Valgrind命令中增加 \texttt{--stacks=yes} 参数以采集程序运行时栈内内存的消耗情况。
+            \item 利用 \texttt{ms\_print} 工具将Massif输出的日志 (massif.out.pid) 可视化或转换为可读格式，分析内存消耗随程序运行时间的变化，特别是关注峰值内存消耗。
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+
+\section{实验结果与分析}
+\subsection{并行FFT的实现与正确性验证}
+\begin{itemize}
+    \item 描述你的并行FFT算法设计和实现的关键点。
+    \item 回答：
+\end{itemize}
+
+\subsection{数据打包优化}
+\begin{itemize}
+    \item 描述你所采用的数据打包方法及其实现。
+    \item 回答：
+\end{itemize}
+
+\subsection{性能分析}
+\begin{itemize}
+    \item \textbf{不同问题规模 (N) 和并行规模（进程数 P）下的运行时间：}
+    \begin{itemize}
+        \item 请以表格形式展示在不同 N 和 P 组合下的原始运行时间。请根据你的实际实验情况填写数据。
+      \begin{table}[h!]
+        \centering
+        \caption{不同问题规模 (N) 和并行规模 (P) 下的运行时间 (单位：秒)}
+        \label{tab:runtime_results_optimized}
+        \begin{tabular}{@{}lccccc@{}}
+        \toprule
+        \multirow{2}{*}{问题规模 (N)} & \multicolumn{5}{c}{并行规模 (进程数 P)} \\
+        \cmidrule(l){2-6}
+                                  & P=1 (串行) & P=2    & P=4    & P=8    & P=16 \\ \midrule
+        $N_1 = 2^{16} $   &            &        &        &        &             \\
+        $N_2 = 2^{18}$  &            &        &        &        &             \\
+        $N_3 = 2^{20}$&            &        &        &        &             \\
+        % 如需更多N值或不同的P值，可在此处调整或添加行/列
+        % 例如:
+        % $N_4 = 2^{22}$&            &        &        &        &             \\
+        \bottomrule
+        \end{tabular}
+        \end{table}
+    \end{itemize}
+    \item \textbf{加速比 (Speedup) 分析：}
+    \begin{itemize}
+        \item 根据运行时间计算不同配置下的加速比 $S_p = T_{serial} / T_{parallel}$。
+        \begin{table}[h!]
+        \centering
+        \caption{不同问题规模 (N) 和并行规模 (P) 下的加速比 ($S_p$)}
+        \label{tab:speedup_results}
+        \begin{tabular}{@{}lccccc@{}}
+        \toprule
+        \multirow{2}{*}{问题规模 (N)} & \multicolumn{5}{c}{并行规模 (进程数 P)} \\
+        \cmidrule(l){2-6}
+                                  & P=1 (基准) & P=2    & P=4    & P=8    & P=16\\ \midrule
+        $N_1 = 2^{16}$   & 1          &        &        &        &             \\
+        $N_2 = 2^{18}$  & 1          &        &        &        &             \\
+        $N_3 = 2^{20} $& 1          &        &        &        &             \\
+        % 如在运行时间记录中使用了其他N值，请在此处保持一致
+        % 例如:
+        % $N_4 = 2^{22}$& 1          &        &        &        &             \\
+        \bottomrule
+        \end{tabular}
+        \end{table}
+        \item 分析加速比，讨论其是否符合预期，并解释原因（例如，通信开销、负载均衡等）。
+    \end{itemize}
+    \item \textbf{数据打包对性能的影响：}
+    \begin{itemize}
+        \item 分析数据打包带来的性能提升或可能引入的额外开销。
+        \item 回答：
+    \end{itemize}
+\end{itemize}
+
+\subsection{内存消耗分析 (Valgrind Massif)}
+\begin{itemize}
+    \item 展示并分析由 \texttt{ms\_print} 生成的内存消耗图表或关键数据点。
+    \item 你的图表：
+    \item 分析不同并行规模（进程数）对程序峰值内存消耗、总内存分配量的影响。
+    \item 回答：
+\end{itemize}
+
+
+注：实验报告格式参考本模板，可在此基础上进行修改；实验代码以zip格式另提交；最终提交内容包括实验报告(pdf格式)和实验代码(zip压缩包格式)
+\end{document}

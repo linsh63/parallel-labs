@@ -1,0 +1,128 @@
+%!TeX program = xelatex
+\documentclass{SYSUReport}
+\usepackage{tabularx} % 在导言区添加此行
+\usepackage{float}
+% 根据个人情况修改
+\headl{}
+\headc{}
+\headr{并行程序设计与算法实验}
+\lessonTitle{并行程序设计与算法实验}
+\reportTitle{Lab8-并行多源最短路径搜索}
+\stuname{xxx}
+\stuid{xxx}
+\inst{计算机学院}
+\major{xxx}
+\date{2025年5月14日}
+
+\begin{document}
+
+% =============================================
+% Part 1: 封面
+% =============================================
+\cover
+\thispagestyle{empty} % 首页不显示页码
+\clearpage
+
+% % =============================================
+% % Part 4： 正文内容
+% % =============================================
+% % 重置页码，并使用阿拉伯数字
+% \pagenumbering{arabic}
+% \setcounter{page}{1}
+
+%%可选择这里也放一个标题
+%\begin{center}
+%    \title{ \Huge \textbf{{标题}}}
+%\end{center}
+
+\section{实验目的}
+\begin{itemize}
+    \item 评估并行化最短路径算法的性能。
+    \item 探索不同最短路径算法的并行适应性。
+\end{itemize}
+\section{实验内容}
+实现并行的多源最短路径搜索，具体要求如下：
+\begin{itemize}
+    \item 使用 OpenMP、Pthreads 或 MPI 中的任意一种并行编程模型来实现。
+
+ \textbf{你选择的并行框架是：}xxx
+    \item 选用任意一种最短路径算法作为基础进行并行化，如Bellman-Ford、Dijkstra（针对每个源点执行）、Floyd-Warshall 或 Johnson 算法。
+    
+\textbf{你选用的算法是：}xxx
+\item 简要描述所选算法的实现要点。
+
+\textbf{回答：}xxx
+\end{itemize}
+\section{实验结果与分析}
+\subsection{实验配置简述}
+\begin{itemize}
+    \item \textbf{所用算法：} [请在此处填写算法名称]
+    \item \textbf{并行框架：} [请在此处填写 OpenMP/Pthreads/MPI]
+    \item \textbf{并行方式：} [请在此处简述核心并行策略，例如：外层循环并行化、数据划分方式等]
+    \item \textbf{测试数据特征：}
+        \begin{itemize}
+            \item 数据集1：节点数量 [V1], 平均度数 [D1] (或边数量 [E1])
+            \item 数据集2 (若有)：节点数量 [V2], 平均度数 [D2] (或边数量 [E2])
+            \item (可添加更多数据集)
+        \end{itemize}
+\end{itemize}
+\textbf{数据集1 (节点数量: [V1], 平均度数: [D1]) 的性能数据：}
+\begin{table}[H]
+  \centering
+  \caption{数据集1 ([V1]节点, 平均度数[D1]) 上 [算法名称] 的并行性能 (串行时间 $T_s$: [填写T1时间] 秒)}
+  \label{tab:results_dataset1}
+  \begin{tabular}{cccc}
+    \toprule
+    \textbf{线程数量 ($p$)} & \textbf{运行时间 $T_p$ (秒)} & \textbf{加速比 $S_p = T_s / T_p$} & \textbf{并行效率 $E_p = S_p / p$} \\
+    \midrule
+    1   & [时间] & 1.00     & 1.00      \\
+    2   & [时间] & [计算值] & [计算值]  \\
+    4   & [时间] & [计算值] & [计算值]  \\
+    8   & [时间] & [计算值] & [计算值]  \\
+    16  & [时间] & [计算值] & [计算值]  \\
+    % 可根据实际测试的线程数调整或增加行
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\textit{(如果测试了多个数据集，请为每个数据集复制并填写类似的表格)}
+
+% \textbf{针对 数据集2 (节点数量: [V2], 平均度数: [D2]) 的性能数据：}
+% \begin{table}[htbp]
+%   \centering
+%   \caption{数据集2 ([V2]节点, 平均度数[D2]) 上 [算法名称] 的并行性能 (串行时间 $T_s$: [填写T1时间] 秒)}
+%   \label{tab:results_dataset2}
+%   \begin{tabular}{cccc}
+%     \toprule
+%     \textbf{线程数量 ($p$)} & \textbf{运行时间 $T_p$ (秒)} & \textbf{加速比 $S_p = T_s / T_p$} & \textbf{并行效率 $E_p = S_p / p$} \\
+%     \midrule
+%     1   & [时间] & 1.00     & 1.00      \\
+%     2   & [时间] & [计算值] & [计算值]  \\
+%     4   & [时间] & [计算值] & [计算值]  \\
+%     8   & [时间] & [计算值] & [计算值]  \\
+%     16  & [时间] & [计算值] & [计算值]  \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
+\subsection{并行性能分析}
+根据你的实验数据，结合你选择的算法、并行框架、并行方式以及测试数据的特征（节点数量、平均度数等），分析程序的并行性能。可辅以图表（如加速比曲线、效率曲线）进行更直观的分析。
+\begin{itemize}
+    \item 运行时间随线程数增加的变化趋势。
+
+    \textbf{回答：}
+    \item 加速比的变化情况。
+
+        \textbf{回答：}
+
+    \item 并行效率的变化情况，分析影响并行效率的主要因素。
+
+        \textbf{回答：}
+
+    \item 不同数据特征（如节点数量、平均度数）对并行性能的影响。
+
+        \textbf{回答：}
+
+\end{itemize}
+
+注：实验报告格式参考本模板，可在此基础上进行修改；实验代码以zip格式另提交；最终提交内容包括实验报告(pdf格式)和实验代码(zip压缩包格式)
+\end{document}
