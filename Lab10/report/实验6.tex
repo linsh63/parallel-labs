@@ -1,0 +1,125 @@
+%!TeX program = xelatex
+\documentclass{SYSUReport}
+\usepackage{tabularx} % 在导言区添加此行
+\usepackage{float}
+% 根据个人情况修改
+\headl{}
+\headc{}
+\headr{并行程序设计与算法实验}
+\lessonTitle{并行程序设计与算法实验}
+\reportTitle{Lab6-Pthreads并行构造}
+\stuname{xxx}
+\stuid{xxx}
+\inst{计算机学院}
+\major{xxx}
+\date{2025年4月30日}
+
+\begin{document}
+
+% =============================================
+% Part 1: 封面
+% =============================================
+\cover
+\thispagestyle{empty} % 首页不显示页码
+\clearpage
+
+% % =============================================
+% % Part 4： 正文内容
+% % =============================================
+% % 重置页码，并使用阿拉伯数字
+% \pagenumbering{arabic}
+% \setcounter{page}{1}
+
+%%可选择这里也放一个标题
+%\begin{center}
+%    \title{ \Huge \textbf{{标题}}}
+%\end{center}
+
+\section{实验目的}
+\begin{itemize}
+  \item 深入理解C/C++程序编译、链接与构建过程
+\item 提高Pthreads多线程编程综合能力
+\item 并行库开发与性能验证
+\end{itemize}
+
+\section{实验内容}
+\begin{itemize}
+ \item 基于Pthreads的并行计算库实现：parallel\_for+调度策略
+\item 动态链接库生成和使用
+\item  典型问题的并行化改造：矩阵乘法，热传导问题
+\end{itemize}
+
+\section{实验过程}
+
+\subsection{环境与工具}
+简要说明实验所使用的操作系统、编译器 (gcc/g++) 版本、以及 Pthreads 库。
+\begin{itemize}
+    \item 回答：
+\end{itemize}
+\subsection{核心函数实现 (\texttt{parallel\_for})}
+简要描述 \texttt{parallel\_for} 函数的关键设计思路和实现。重点说明线程创建、任务划分和同步机制。
+\begin{lstlisting}[language=C++, caption={parallel\_for 函数核心代码片段}]
+// 在此处粘贴你的 parallel_for 函数核心代码
+// 简单注释说明关键部分即可
+\end{lstlisting}
+\subsection{动态库生成与使用}
+说明生成动态链接库 (.so) 的主要命令或 Makefile 规则，并简述如何在主程序 (如矩阵乘法、热传导) 中链接和调用该库。
+\begin{verbatim}
+# 示例：生成动态库命令
+...
+# 示例：编译链接主程序
+...
+\end{verbatim}
+\subsection{应用测试 (热传导)}
+简述如何将 \texttt{parallel\_for} 应用于热传导问题，替换原有的并行机制。描述测试设置，如网格大小和线程数。
+\begin{itemize}
+    \item 回答：
+\end{itemize}
+
+\section{实验结果与分析}
+
+\subsection{性能测试结果}
+展示不同线程数和调度方式下，自定义 Pthreads 实现与原始 OpenMP 实现的性能对比。
+\begin{table}[h!]
+\centering
+\caption{热传导问题性能对比 (Pthreads vs OpenMP, 网格大小: M x N)}
+% Updated column definition: 4 columns total
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{线程数} & \textbf{调度方式} & \textbf{自定义 Pthreads} & \textbf{原始 OpenMP} \\
+\cline{3-4} % Line under Pthreads and OpenMP Time columns
+ & \textbf{(Pthreads)} & 时间 (s) & 时间 (s) \\
+\hline
+1 (串行) & N/A & T1\_pth & T1\_omp \\
+\hline
+% Updated colspan to 4
+\multicolumn{4}{|c|}{Pthreads: 静态调度 (Static)} \\
+\hline
+% Removed Speedup columns
+2 & Static & T2\_pth\_static & T2\_omp \\
+4 & Static & T4\_pth\_static & T4\_omp \\
+8 & Static & T8\_pth\_static & T8\_omp \\
+16 & Static & T16\_pth\_static & T16\_omp \\
+... & ... & ... & ... \\
+\hline
+% Updated colspan to 4
+\multicolumn{4}{|c|}{Pthreads: 动态调度 (Dynamic, chunk=X)} \\
+\hline
+% Removed Speedup columns
+2 & Dynamic & T2\_pth\_dynamic & T2\_omp \\
+4 & Dynamic & T4\_pth\_dynamic & T4\_omp \\
+8 & Dynamic & T8\_pth\_dynamic & T8\_omp \\
+16 & Dynamic & T16\_pth\_dynamic & T16\_omp \\
+... & ... & ... & ... \\
+\hline
+\end{tabular}
+\label{tab:performance_comparison_time_only}
+\end{table}
+
+\subsection{结果分析与总结}
+简要分析性能结果，说明是否达到了并行加速效果。
+\begin{itemize}
+    \item 回答：
+\end{itemize}
+注：实验报告格式参考本模板，可在此基础上进行修改；实验代码以zip格式另提交；最终提交内容包括实验报告(pdf格式)和实验代码(zip压缩包格式)
+\end{document}

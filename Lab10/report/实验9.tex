@@ -1,0 +1,121 @@
+%!TeX program = xelatex
+\documentclass{SYSUReport}
+\usepackage{tabularx} % 在导言区添加此行
+\usepackage{float}
+% 根据个人情况修改
+\headl{}
+\headc{}
+\headr{并行程序设计与算法实验}
+\lessonTitle{并行程序设计与算法实验}
+\reportTitle{Lab9-CUDA矩阵转置}
+\stuname{xxx}
+\stuid{xxx}
+\inst{计算机学院}
+\major{xxx}
+\date{2025年5月21日}
+
+\begin{document}
+
+% =============================================
+% Part 1: 封面
+% =============================================
+\cover
+\thispagestyle{empty} % 首页不显示页码
+\clearpage
+
+% % =============================================
+% % Part 4： 正文内容
+% % =============================================
+% % 重置页码，并使用阿拉伯数字
+% \pagenumbering{arabic}
+% \setcounter{page}{1}
+
+%%可选择这里也放一个标题
+%\begin{center}
+%    \title{ \Huge \textbf{{标题}}}
+%\end{center}
+
+\section{实验目的}
+\begin{itemize}
+   \item 熟悉 CUDA 线程层次结构(grid、block、thread)和观察 warp 调度行为。 
+    \item 掌握 CUDA 内存优化技术(共享内存、合并访问)。
+    \item 理解线程块配置对性能的影响。
+\end{itemize}
+\section{实验内容}
+\subsection{CUDA并行输出}
+\begin{enumerate}
+    \item 创建$n$个线程块，每个线程块的维度为$m\times k$。
+    \item 每个线程均输出线程块编号、二维块内线程编号。例如：
+    \begin{itemize}
+        \item “Hello World from Thread (1, 2) in Block 10!”
+         \item 主线程输出“Hello World from the host!”。 
+        \item 在 main 函数结束前，调用 \texttt{cudaDeviceSynchronize()}。  
+    \end{itemize}
+    \item 完成上述内容，观察输出，并回答线程输出顺序是否有规律。 
+\end{enumerate}
+
+\subsection{使用 CUDA 实现矩阵转置及优化}
+\begin{enumerate}
+    \item 使用 CUDA 完成并行矩阵转置。 
+    \item 随机生成 $N \times N$ 的矩阵 A。 
+    \item 对其进行转置得到 $A^T$。 
+    \item 分析不同线程块大小、矩阵规模、访存方式(全局内存访问，共享内存访问)、任务/数据划分和映射方式，对程序性能的影响。 
+    \item 实现并对比以下两种矩阵转置方法：
+    \begin{itemize}
+        \item 仅使用全局内存的 CUDA 矩阵转置。 
+        \item 使用共享内存的 CUDA 矩阵转置，并考虑优化存储体冲突。  
+    \end{itemize}
+\end{enumerate}
+\section{实验结果与分析}
+\subsection{CUDA Hello World 并行输出}
+\subsubsection{实验现象}
+描述实验观察到的现象，例如线程输出的顺序等。可以粘贴部分关键的运行截图或输出文本。
+\begin{itemize}
+    \item 回答：
+\end{itemize}
+\subsubsection{结果分析}
+线程输出顺序是否有规律？为什么？结合CUDA线程调度机制进行解释。
+\begin{itemize}
+    \item 回答：
+\end{itemize}
+\subsection{CUDA 矩阵转置及优化}
+\subsubsection{不同实现方法的性能对比}
+1. 展示不同矩阵转置实现（仅全局内存、使用共享内存、优化共享内存访问）在不同矩阵规模 (N) 和不同线程块大小下的运行时间。可以根据你的实验设置更改表格的矩阵规模、线程块大小。
+\begin{table}[h!]
+\centering
+\caption{矩阵转置性能对比 (时间单位: ms)}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+矩阵规模 (N) & 线程块大小 & 全局内存版本 & 共享内存版本 & 优化共享内存版本 \\
+\hline
+\multirow{3}{*}{512} & 8$\times$8 & & & \\
+\cline{2-5} % Draws a line from the 2nd to 5th column
+& 16$\times$16 & & & \\
+\cline{2-5}
+& 32$\times$32 & & & \\
+\hline
+\multirow{3}{*}{1024} & 8$\times$8 & & & \\
+\cline{2-5}
+& 16$\times$16 & & & \\
+\cline{2-5}
+& 32$\times$32 & & & \\
+\hline
+\multirow{3}{*}{2048} & 8$\times$8 & & & \\
+\cline{2-5}
+& 16$\times$16 & & & \\
+\cline{2-5}
+& 32$\times$32 & & & \\
+\hline
+\end{tabular}
+\end{table}
+\subsubsection{结果分析}
+1. 根据实验结果，总结线程块大小、矩阵规模对程序性能的影响。哪种配置下性能最优？为什么？
+
+回答：
+
+2. 讨论任务/数据划分和映射方式对性能的影响。
+
+回答：
+
+注：实验报告格式参考本模板，可在此基础上进行修改；实验代码以zip格式另提交；最终提交内容包括实验报告(pdf格式)和实验代码(zip压缩包格式)
+\end{document}

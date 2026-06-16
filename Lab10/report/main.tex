@@ -1,0 +1,171 @@
+%!TeX program = xelatex
+\PassOptionsToClass{fontset=fandol}{ctexart}
+\documentclass{SYSUReport}
+\usepackage{tabularx} % 在导言区添加此行
+\usepackage{float}
+\usepackage{multirow}
+% Listings configuration for CUDA C++
+\lstdefinestyle{cuda_cpp}{
+    language=C++,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!40!black},
+    stringstyle=\color{purple},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=2,
+    captionpos=b, % Caption at the bottom
+    escapeinside={\%*}{*)}, % Allows LaTeX commands inside listings
+    morekeywords={__global__, __shared__, threadIdx, blockIdx, blockDim, gridDim, cudaMalloc, cudaMemcpy, cudaFree, __syncthreads, dim3} % Add CUDA specific keywords
+}
+% 根据个人情况修改
+\headl{}
+\headc{}
+\headr{并行程序设计与算法实验}
+\lessonTitle{并行程序设计与算法实验}
+\reportTitle{Lab10-CUDA并行矩阵乘法}
+\stuname{林思涵}
+\stuid{23336142}
+\inst{计算机学院}
+\major{计算机科学与技术}
+\date{\today}
+
+\begin{document}
+
+% =============================================
+% Part 1: 封面
+% =============================================
+\cover
+\thispagestyle{empty} % 首页不显示页码
+\clearpage
+
+% % =============================================
+% % Part 4： 正文内容
+% % =============================================
+% % 重置页码，并使用阿拉伯数字
+% \pagenumbering{arabic}
+% \setcounter{page}{1}
+
+%%可选择这里也放一个标题
+%\begin{center}
+%    \title{ \Huge \textbf{{标题}}}
+%\end{center}
+
+\section{实验目的}
+\begin{itemize}
+    \item 理解CUDA编程模型(Grid、Block、Thread)及其在矩阵乘法中的应用。
+    \item 学习GPU内存优化技术。
+\end{itemize}
+\section{实验内容}
+\begin{itemize}
+    \item 实现基础矩阵乘法
+\item 优化矩阵乘法：共享内存，分块技术
+\item 测量不同实现的运行时间
+\end{itemize}
+\section{实验结果与分析}
+\subsection{不同实现方法的性能对比}
+\begin{table}[H] % Changed from [h!] to [H] for 'here definitely' via float package
+\centering
+\caption{按行划分：性能对比 (时间单位: ms)}
+\label{tab:perf_combined}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+矩阵规模 (N) & 线程块大小 & 朴素实现 & 基于共享内存优化 & 基于寄存器分块优化 \\
+\hline
+\multirow{3}{*}{512} & 8$\times$8 &       &       &       \\ % Students fill these
+\cline{2-5}
+& 16$\times$16 &       &       &       \\
+\cline{2-5}
+& 32$\times$32 &       &       &       \\
+\hline
+\multirow{3}{*}{1024} & 8$\times$8 &       &       &       \\
+\cline{2-5}
+& 16$\times$16 &       &       &       \\
+\cline{2-5}
+& 32$\times$32 &       &       &       \\
+\hline
+\multirow{3}{*}{2048} & 8$\times$8 &       &       &       \\
+\cline{2-5}
+& 16$\times$16 &       &       &       \\
+\cline{2-5}
+& 32$\times$32 &       &       &       \\
+\hline
+% 可以根据需要添加更多矩阵规模或线程块大小的测试
+\end{tabular}
+\end{table}
+\begin{table}[H] % Changed from [h!] to [H] for 'here definitely' via float package
+\centering
+\caption{按列划分：性能对比 (时间单位: ms)}
+\label{tab:perf_column}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+矩阵规模 (N) & 线程块大小 & 朴素实现 & 基于共享内存优化 & 基于寄存器分块优化 \\
+\hline
+\multirow{3}{*}{512} & 8$\times$8 &       &       &       \\ % Students fill these
+\cline{2-5}
+& 16$\times$16 &       &       &       \\
+\cline{2-5}
+& 32$\times$32 &       &       &       \\
+\hline
+\multirow{3}{*}{1024} & 8$\times$8 &       &       &       \\
+\cline{2-5}
+& 16$\times$16 &       &       &       \\
+\cline{2-5}
+& 32$\times$32 &       &       &       \\
+\hline
+\multirow{3}{*}{2048} & 8$\times$8 &       &       &       \\
+\cline{2-5}
+& 16$\times$16 &       &       &       \\
+\cline{2-5}
+& 32$\times$32 &       &       &       \\
+\hline
+% 可以根据需要添加更多矩阵规模或线程块大小的测试
+\end{tabular}
+\end{table}
+\begin{table}[H] % Changed from [h!] to [H] for 'here definitely' via float package
+\centering
+\caption{按数据块划分：性能对比 (时间单位: ms)}
+\label{tab:perf_tile}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+矩阵规模 (N) & 线程块大小 & 朴素实现 & 基于共享内存优化 & 基于寄存器分块优化 \\
+\hline
+\multirow{3}{*}{512} & 8$\times$8 &       &       &       \\ % Students fill these
+\cline{2-5}
+& 16$\times$16 &       &       &       \\
+\cline{2-5}
+& 32$\times$32 &       &       &       \\
+\hline
+\multirow{3}{*}{1024} & 8$\times$8 &       &       &       \\
+\cline{2-5}
+& 16$\times$16 &       &       &       \\
+\cline{2-5}
+& 32$\times$32 &       &       &       \\
+\hline
+\multirow{3}{*}{2048} & 8$\times$8 &       &       &       \\
+\cline{2-5}
+& 16$\times$16 &       &       &       \\
+\cline{2-5}
+& 32$\times$32 &       &       &       \\
+\hline
+% 可以根据需要添加更多矩阵规模或线程块大小的测试
+\end{tabular}
+\end{table}
+%其他划分方式可自由设计表格
+分析性能差异的原因：
+\begin{itemize}
+    \item 结合CUDA内存模型和矩阵乘法原理，分析造成观察到的性能差异的可能原因。\par
+    回答：
+    \item 如何选择合适的线程块大小以提高占用率？\par
+    回答
+    \item 思考如果按不同的方式划分（例如，按行、列、数据块划分），可能会对性能和实现复杂度带来什么影响？\par
+    回答：
+    \item 何时应该优先考虑使用哪种存储？\par
+    回答：
+
+
+\end{itemize}
+
+\end{document}
