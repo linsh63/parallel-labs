@@ -68,17 +68,12 @@ __device__ float input_at(const float *input, int n, int c, int row, int col)
     return input[(c * n + row) * n + col];
 }
 
-// 二维线程块映射：每个线程计算一个输出像素。
-__global__ void direct_2d_kernel(const float *input, const float *filter,
-                                 float *output, int n, int kernel, int pad,
-                                 int stride, int out_n)
+// 计算一个输出像素的卷积结果。
+__device__ __forceinline__ float conv_value(const float *input,
+                                            const float *filter, int n,
+                                            int kernel, int pad, int stride,
+                                            int oh, int ow)
 {
-    int ow = blockIdx.x * blockDim.x + threadIdx.x;
-    int oh = blockIdx.y * blockDim.y + threadIdx.y;
-    if (oh >= out_n || ow >= out_n) {
-        return;
-    }
-
     float sum = 0.0f;
     for (int c = 0; c < kChannels; ++c) {
         for (int r = 0; r < kernel; ++r) {
@@ -91,7 +86,22 @@ __global__ void direct_2d_kernel(const float *input, const float *filter,
             }
         }
     }
-    output[oh * out_n + ow] = sum;
+    return sum;
+}
+
+// 二维线程块映射：每个线程计算一个输出像素。
+__global__ void direct_2d_kernel(const float *input, const float *filter,
+                                 float *output, int n, int kernel, int pad,
+                                 int stride, int out_n)
+{
+    int ow = blockIdx.x * blockDim.x + threadIdx.x;
+    int oh = blockIdx.y * blockDim.y + threadIdx.y;
+    if (oh >= out_n || ow >= out_n) {
+        return;
+    }
+
+    output[oh * out_n + ow] =
+        conv_value(input, filter, n, kernel, pad, stride, oh, ow);
 }
 
 // 一维线性映射：每个线程按线性编号计算一个输出像素。
@@ -107,19 +117,27 @@ __global__ void direct_linear_kernel(const float *input, const float *filter,
 
     int oh = idx / out_n;
     int ow = idx - oh * out_n;
-    float sum = 0.0f;
-    for (int c = 0; c < kChannels; ++c) {
-        for (int r = 0; r < kernel; ++r) {
-            for (int s = 0; s < kernel; ++s) {
-                int ih = oh * stride + r - pad;
-                int iw = ow * stride + s - pad;
-                float x = input_at(input, n, c, ih, iw);
-                float w = filter[(c * kernel + r) * kernel + s];
-                sum += x * w;
-            }
-        }
+    output[idx] = conv_value(input, filter, n, kernel, pad, stride, oh, ow);
+}
+
+// 水平合并映射：每个线程计算同一行相邻的两个输出像素。
+__global__ void direct_pair_kernel(const float *input, const float *filter,
+                                   float *output, int n, int kernel, int pad,
+                                   int stride, int out_n)
+{
+    int ow0 = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
+    int oh = blockIdx.y * blockDim.y + threadIdx.y;
+    if (oh >= out_n || ow0 >= out_n) {
+        return;
     }
-    output[idx] = sum;
+
+    output[oh * out_n + ow0] =
+        conv_value(input, filter, n, kernel, pad, stride, oh, ow0);
+    int ow1 = ow0 + 1;
+    if (ow1 < out_n) {
+        output[oh * out_n + ow1] =
+            conv_value(input, filter, n, kernel, pad, stride, oh, ow1);
+    }
 }
 
 // 将每个卷积窗口展开为 im2col 矩阵的一行。
@@ -182,6 +200,17 @@ void launch_direct_linear(const float *input, const float *filter,
     int total = out_n * out_n;
     direct_linear_kernel<<<ceil_div(total, threads), threads>>>(
         input, filter, output, n, kernel, pad, stride, out_n);
+}
+
+// 启动水平合并映射直接卷积。
+void launch_direct_pair(const float *input, const float *filter, float *output,
+                        int n, int kernel, int pad, int stride, int out_n,
+                        int block_size)
+{
+    dim3 block(block_size, block_size);
+    dim3 grid(ceil_div(out_n, 2 * block_size), ceil_div(out_n, block_size));
+    direct_pair_kernel<<<grid, block>>>(input, filter, output, n, kernel, pad,
+                                        stride, out_n);
 }
 
 // 启动 im2col 展开和矩阵乘法。
@@ -344,6 +373,13 @@ Times run_case(int n, int kernel, int stride, int block_size,
                                      pad, stride, out_n, block_size);
             },
             repeat);
+    } else if (mapping == "pair") {
+        times.direct = time_cuda(
+            [&] {
+                launch_direct_pair(d_input, d_filter, d_direct, n, kernel, pad,
+                                   stride, out_n, block_size);
+            },
+            repeat);
     } else {
         times.direct = time_cuda(
             [&] {
@@ -469,7 +505,7 @@ void run_benchmark(int repeat)
         print_row("block", 256, kernel, 1, block, "2d", t);
     }
 
-    for (const std::string &mapping : {"2d", "linear"}) {
+    for (const std::string &mapping : {"2d", "linear", "pair"}) {
         Times t = run_case(256, kernel, 1, 16, mapping, repeat, false, false);
         print_row("mapping", 256, kernel, 1, 16, mapping, t);
     }
@@ -496,25 +532,33 @@ void print_usage(const char *program)
 
 int main(int argc, char **argv)
 {
+    // 1. benchmark 模式：批量运行报告需要的实验组合。
     if (argc >= 2 && std::string(argv[1]) == "--benchmark") {
         int repeat = argc >= 3 ? std::atoi(argv[2]) : kDefaultRepeat;
         run_benchmark(std::max(1, repeat));
         return 0;
     }
+
+    // 2. 帮助模式：打印命令行参数说明。
     if (argc >= 2 && std::string(argv[1]) == "--help") {
         print_usage(argv[0]);
         return 0;
     }
 
+    // 3. 普通模式：读取单组卷积参数，缺省值用于快速运行。
     int n = argc >= 2 ? std::atoi(argv[1]) : kDefaultN;
     int kernel = argc >= 3 ? std::atoi(argv[2]) : kDefaultKernel;
     int stride = argc >= 4 ? std::atoi(argv[3]) : kDefaultStride;
     int block = argc >= 5 ? std::atoi(argv[4]) : kDefaultBlock;
     int repeat = argc >= 6 ? std::atoi(argv[5]) : kDefaultRepeat;
+
+    // 4. 参数检查：过滤明显不合法的输入配置。
     if (n < 32 || kernel < 1 || kernel % 2 == 0 || stride < 1 || block < 1) {
         print_usage(argv[0]);
         return 1;
     }
+
+    // 5. 执行单组直接卷积，并打印输出预览和运行时间。
     run_single(n, kernel, stride, block, std::max(1, repeat));
     return 0;
 }
