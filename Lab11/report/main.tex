@@ -1,0 +1,177 @@
+%!TeX program = xelatex
+\PassOptionsToClass{fontset=fandol}{ctexart}
+\documentclass{SYSUReport}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\setlist{itemsep=2pt,topsep=3pt,parsep=0pt,partopsep=0pt}
+
+% 根据个人情况修改
+\headl{}
+\headc{}
+\headr{并行程序设计与算法实验}
+\lessonTitle{并行程序设计与算法实验}
+\reportTitle{Lab11-CUDA卷积计算}
+\stuname{林思涵}
+\stuid{23336142}
+\inst{计算机学院}
+\major{计算机科学与技术}
+\date{\today}
+
+\begin{document}
+
+% =============================================
+% 封面
+% =============================================
+\cover
+\thispagestyle{empty}
+\clearpage
+
+% =============================================
+% 正文
+% =============================================
+\section{实验目的}
+\begin{itemize}
+    \item 理解神经网络中二维卷积的基本计算过程，以及 stride 和 padding 对输出尺寸与计算量的影响。
+    \item 掌握 CUDA 直接卷积（滑窗法）的实现方法，理解线程块配置、任务映射和访存方式对性能的影响。
+    \item 掌握 im2col 方法，将卷积转换为矩阵乘法并使用已有的 CUDA 矩阵乘法程序完成计算。
+    \item 学习使用 cuDNN 卷积接口，对比直接卷积、im2col 方法和 cuDNN 的运行性能。
+\end{itemize}
+
+\section{实验内容}
+本实验实现神经网络中的二维卷积操作。卷积核不进行翻转，不考虑偏置项，bias 设置为 0。为保证不同实现之间能够公平比较，统一采用以下实验设置：
+\begin{itemize}
+    \item 输入为 $N\times N\times3$ 的单精度数据，batch size 为 1；
+    \item 使用一个 $3\times3\times3$ 卷积核，输出通道数为 1；
+    \item padding 设置为 1，stride 分别设置为 1、2 和 3；
+    \item 根据实验设备，从 $32\times32$ 至 $512\times512$，或从 $256\times256$ 至 $4096\times4096$ 中选择不少于三组输入规模；三种实现采用相同的输入和卷积参数。
+\end{itemize}
+输出尺寸计算公式为：
+\begin{equation*}
+N_{\mathrm{out}}
+=
+\left\lfloor
+\frac{N+2P-K}{S}
+\right\rfloor
++1.
+\end{equation*}
+其中，$P$、$K$ 和 $S$ 分别表示 padding、卷积核大小和 stride。
+
+\subsection{CUDA直接卷积}
+使用 CUDA 实现直接卷积（滑窗法），由 CUDA 线程计算各个输出位置的卷积结果。测试不同输入图像大小、stride 和线程块大小下的运行时间；自行设计并说明输出任务到 CUDA 线程的映射方式，至少比较两种不同的任务粒度或线程映射方式。这里比较的是线程任务映射方式，而不是不同的卷积算法。
+
+\subsection{im2col方法}
+使用 im2col 将各个滑动窗口展开为矩阵，将卷积核展开为向量，再使用已有的 CUDA 矩阵乘法程序完成卷积计算。矩阵乘法程序应支持 im2col 产生的矩形矩阵。测试不同输入图像大小和 stride 下 im2col 方法的运行时间。
+
+\subsection{cuDNN卷积}
+使用 cuDNN 提供的卷积接口完成相同的卷积操作，并与直接卷积和 im2col 方法进行性能比较。三种实现只统计 GPU 计算阶段：直接卷积统计卷积 kernel 时间，im2col 方法统计数据展开与矩阵乘法的总时间，cuDNN 统计卷积执行时间；不包含显存申请、程序初始化和主机与设备之间的数据传输时间。每组实验预热后重复执行多次并取平均值。
+
+\section{实验结果}
+本节记录以下性能数据。输入规模和线程块大小可根据实验设备调整，但每组实验只改变所考察的变量，其余参数保持一致。
+
+\subsection{线程块大小对直接卷积性能的影响}
+固定输入图像大小、stride 和任务映射方式，测量不同线程块大小下 CUDA 直接卷积的运行时间。
+\begin{table}[H]
+\centering
+\caption{不同线程块大小下CUDA直接卷积的运行时间（ms）}
+\label{tab:block_size}
+\begin{tabular}{|c|c|c|}
+\hline
+输入图像大小 & 线程块大小 & 运行时间 \\
+\hline
+\multirow{3}{*}{$N\times N$}
+& $8\times8$   & \\
+\cline{2-3}
+& $16\times16$ & \\
+\cline{2-3}
+& $32\times32$ & \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{任务划分与线程映射方式对性能的影响}
+固定输入图像大小、stride 和线程块线程数，测量不同任务划分与线程映射方式下直接卷积的运行时间，并简要说明每个线程负责的计算任务。
+\begin{table}[H]
+\centering
+\caption{不同任务划分与线程映射方式下直接卷积的运行时间（ms）}
+\label{tab:mapping}
+\begin{tabularx}{0.92\textwidth}{|c|X|c|}
+\hline
+编号 & 任务划分与线程映射方式 & 运行时间 \\
+\hline
+方式一 &  & \\
+\hline
+方式二 &  & \\
+\hline
+方式三（可选） &  & \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsection{不同卷积实现的性能对比}
+在相同输入图像大小、stride、padding 和卷积核设置下，测量直接卷积、im2col 方法和 cuDNN 的运行时间。该表同时用于观察输入规模和 stride 对三种实现性能的影响。
+\begin{table}[H]
+\centering
+\caption{不同卷积实现的性能对比（时间单位：ms）}
+\label{tab:conv_compare}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+输入图像大小 & stride & 直接卷积 & im2col方法 & cuDNN \\
+\hline
+\multirow{3}{*}{$N_1\times N_1$}
+& 1 & & & \\
+\cline{2-5}
+& 2 & & & \\
+\cline{2-5}
+& 3 & & & \\
+\hline
+\multirow{3}{*}{$N_2\times N_2$}
+& 1 & & & \\
+\cline{2-5}
+& 2 & & & \\
+\cline{2-5}
+& 3 & & & \\
+\hline
+\multirow{3}{*}{$N_3\times N_3$}
+& 1 & & & \\
+\cline{2-5}
+& 2 & & & \\
+\cline{2-5}
+& 3 & & & \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{实验分析}
+根据实验结果完成以下分析：
+\begin{enumerate}
+    \item 分析输入图像大小、stride 和线程块大小对直接卷积运行时间的影响；说明哪种线程块配置性能较好，并结合并行度和硬件资源使用分析原因。\\
+    \textbf{回答：}
+
+    \item 说明所采用的任务划分与线程映射方式，分析不同方式对任务粒度、负载均衡和全局内存访问的影响。\\
+    \textbf{回答：}
+
+    \item 对比直接卷积与 im2col 方法的性能，分析 im2col 的数据展开与额外内存访问开销，以及规则矩阵乘法可能带来的收益。\\
+    \textbf{回答：}
+
+    \item 对比自行实现的卷积与 cuDNN 的性能；如果性能低于 cuDNN，结合数据复用、合并访存、共享内存、常量内存和线程块配置说明可能的改进方向。\\
+    \textbf{回答：}
+\end{enumerate}
+
+\appendix
+\section{运行命令}
+\noindent 以下命令默认在 \texttt{Lab11} 目录下执行。
+
+\begin{verbatim}
+make clean all CUDNN=1
+
+./build/convolution 256 3 1 16 5 \
+    > results/convolution_single_256_s1.txt
+
+./build/convolution --benchmark 5 \
+    > results/convolution_benchmark.csv
+\end{verbatim}
+
+\end{document}

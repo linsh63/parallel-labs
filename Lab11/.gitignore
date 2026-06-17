@@ -1,0 +1,12 @@
+build/
+results/*.csv
+results/*.txt
+report/*.aux
+report/*.fdb_latexmk
+report/*.fls
+report/*.log
+report/*.out
+report/*.xdv
+report/*.synctex.gz
+*.zip
+.DS_Store
